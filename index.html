@@ -208,6 +208,14 @@
   .chart-wrap p{color:var(--muted);font-size:12.5px;margin:0 0 8px}
   canvas.chart{width:100%;height:180px;display:block;background:var(--bg-2);border:1px solid var(--line);border-radius:12px}
   .transcript-box{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:10px;max-height:280px;overflow:auto;white-space:pre-wrap;font-size:15px;line-height:1.6}
+  .whisper-ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0 0}
+  select.model-sel{max-width:260px;width:auto;padding:11px 12px;font-size:14px}
+  .whisper-status{font-family:'Space Mono',monospace;font-size:12.5px;color:var(--muted);margin-top:10px;min-height:18px}
+  .wbar{height:8px;border-radius:6px;background:var(--panel-2);overflow:hidden;margin-top:8px;display:none}
+  .wbar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--signal),var(--gold));transition:width .2s}
+  #whisperOut .seg{cursor:pointer;border-bottom:1px dotted transparent;transition:.12s}
+  #whisperOut .seg:hover{color:var(--signal);border-bottom-color:var(--signal-dim)}
+  #whisperOut .ts{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted-2);margin-right:5px}
 
   .hidden{display:none!important}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -383,13 +391,30 @@
     </div>
 
     <div class="chart-wrap">
-      <h3>Transcript</h3>
+      <h3>Live transcript — instant</h3>
+      <p>Captured in real time while you spoke. Fast, but the browser's free engine can miss words.</p>
       <div class="transcript-box" id="finalTranscript"></div>
+    </div>
+
+    <div class="chart-wrap" id="whisperWrap">
+      <h3>Accurate transcript — on‑device Whisper</h3>
+      <p>Runs an AI speech model fully inside your browser over the saved audio. The first run downloads the model once; nothing is ever uploaded. Click any line to jump the player there.</p>
+      <div class="whisper-ctrl">
+        <select class="model-sel" id="whisperModel">
+          <option value="Xenova/whisper-tiny.en">Tiny · fastest (~40&nbsp;MB)</option>
+          <option value="Xenova/whisper-base.en">Base · more accurate (~80&nbsp;MB)</option>
+        </select>
+        <button class="btn btn-signal" id="whisperBtn">✦ Transcribe accurately</button>
+      </div>
+      <div class="wbar" id="whisperBar"><i></i></div>
+      <div class="whisper-status" id="whisperStatus">Best in desktop Chrome/Edge. A 5‑minute clip on "Tiny" usually takes 1–3 minutes here; "Base" is slower but sharper.</div>
+      <div class="transcript-box hidden" id="whisperOut" style="margin-top:12px"></div>
     </div>
 
     <div class="row" style="margin-top:16px">
       <a class="dl hidden" id="dlMedia" download>⬇ Download recording</a>
       <a class="dl hidden" id="dlTranscript" download>⬇ Download transcript (.txt)</a>
+      <a class="dl hidden" id="dlWhisper" download>⬇ Download accurate transcript (.txt)</a>
       <div class="spacer"></div>
       <button class="btn btn-primary" id="again">↻ New session</button>
     </div>
@@ -411,7 +436,7 @@
       <li><b>Prompt ideas</b> generated from rule‑based templates around your word + field.</li>
       <li><b>5‑minute writing timer</b> with a last‑minute red blink and a synthesized per‑second tick cue.</li>
       <li><b>Recording</b> of microphone, webcam, or both, at 5 / 10 / 20 / 30 minutes, with automatic stop and a mirrored self‑view for facial‑cue practice.</li>
-      <li><b>Live transcript</b> via the browser's built‑in speech recognition (the same free tech behind voice typing).</li>
+      <li><b>Live transcript</b> via the browser's built‑in speech recognition (the same free tech behind voice typing), plus an optional <b>on‑device Whisper second pass</b> for a far more complete, timestamped transcript — all in your browser, nothing uploaded.</li>
       <li><b>Pitch, volume and pace tracking</b> charted against time, plus a downloadable recording + transcript.</li>
     </ul>
 
@@ -419,7 +444,7 @@
     <ul>
       <li><b>True AI‑generated ideas/definitions</b> need an LLM API key. A key can't be safely embedded in a public GitHub Pages site (anyone could read it), so ideas here are template‑based. To get real AI generation you'd add a tiny backend or serverless function — that's no longer purely static/free.</li>
       <li><b>The actual Family Feud sound</b> is copyrighted, so the countdown uses an original synthesized tick in the same spirit.</li>
-      <li><b>Speech‑to‑text is browser‑dependent and not perfect.</b> It works best in <b>desktop Chrome/Edge</b>; Firefox/Safari support is poor or absent. The recognizer is now kept alive with an auto‑restart and a watchdog so it captures far more, but the browser's free speech API still can't guarantee every word — for a near‑complete transcript you'd run an on‑device model (e.g. Whisper in WebAssembly) over the saved audio afterward.</li>
+      <li><b>The live transcript isn't perfect.</b> The browser's free speech engine works best in <b>desktop Chrome/Edge</b> (poor/absent in Firefox/Safari) and can miss words. For a near‑complete version, use the <b>Accurate transcript</b> button on the report — it runs Whisper on‑device over your saved audio. The trade‑off: a one‑time model download (~40–80&nbsp;MB) and a processing wait (roughly 1–3 min for a 5‑min clip on "Tiny", longer on "Base"), because GitHub Pages can't send the headers that unlock multi‑threaded/fast WASM. It also may be blocked inside the in‑chat preview — run it on the deployed site.</li>
       <li><b>Speech recognition listens to your microphone only</b> — so "Webcam only" (no mic) records video but produces no transcript or pitch chart.</li>
       <li><b>Webcam capture</b> needs a camera and HTTPS; the recorded file is normal (un‑mirrored), while your live self‑view is mirrored like a mirror or video call.</li>
       <li><b>"Tone"</b> is measured objectively as pitch + loudness + pacing. Emotional/sentiment tone would need an ML model and isn't included.</li>
@@ -796,6 +821,7 @@ let series={t:[],pitch:[],vol:[],words:[]};
 let recognition=null, recognizing=false, srWatchdog=null;
 let finalText="", interimText="", recStartTime=0, mediaURL=null, transcriptURL=null;
 let hasVideoRec=false, chartData=null, playRAF=null, playMediaEl=null;
+let recBlob=null, whisperPipe=null, whisperPipeName=null, whisperURL=null;
 const NOTE=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 function hzToNote(f){if(f<=0)return"—";const n=Math.round(12*Math.log2(f/440))+57;return NOTE[((n%12)+12)%12]+(Math.floor(n/12));}
 
@@ -1004,6 +1030,7 @@ function fixWebmDuration(el){
 
 function finishRecording(){
   const blob=new Blob(recChunks,{type:recChunks[0]?recChunks[0].type:'audio/webm'});
+  recBlob=blob;
   if(mediaURL) URL.revokeObjectURL(mediaURL);
   mediaURL=URL.createObjectURL(blob);
   const dl=$('#dlMedia');
@@ -1138,6 +1165,104 @@ function drawChart(canvas,xs,ys,opts){
     ctx.fillStyle='#ff5a3c';ctx.beginPath();ctx.arc(px,padT,4,0,2*Math.PI);ctx.fill();
   }
 }
+
+/* ============================================================
+   ON-DEVICE WHISPER (accurate second-pass transcript)
+   Loads transformers.js from a CDN and runs Whisper entirely
+   in the browser. Audio never leaves the device.
+   ============================================================ */
+async function blobToFloat32_16k(blob){
+  const arrBuf = await blob.arrayBuffer();
+  const dc = new (window.AudioContext||window.webkitAudioContext)();
+  const decoded = await dc.decodeAudioData(arrBuf.slice(0));
+  dc.close();
+  const frames = Math.max(1, Math.ceil(decoded.duration*16000));
+  const off = new OfflineAudioContext(1, frames, 16000); // 1 channel -> auto downmix to mono
+  const src = off.createBufferSource();
+  src.buffer = decoded;
+  src.connect(off.destination);
+  src.start(0);
+  const rendered = await off.startRendering();
+  return rendered.getChannelData(0);
+}
+
+async function transcribeWithWhisper(){
+  const btn=$('#whisperBtn'), status=$('#whisperStatus'), bar=$('#whisperBar'), barI=bar.querySelector('i');
+  if(!recBlob){ status.textContent='No recording is available to transcribe.'; return; }
+  const model=$('#whisperModel').value;
+  btn.disabled=true; bar.style.display='block'; barI.style.width='0%';
+  status.textContent='Loading the Whisper library…';
+
+  let lib;
+  try{
+    lib = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+  }catch(e){
+    status.textContent='Couldn\u2019t load the Whisper library here. This step needs a normal browser tab on HTTPS and is often blocked inside the in‑chat preview — open your deployed GitHub Pages link and try again.';
+    bar.style.display='none'; btn.disabled=false; return;
+  }
+  const { pipeline, env } = lib;
+  env.allowLocalModels=false; env.useBrowserCache=true;
+
+  try{
+    if(whisperPipe===null || whisperPipeName!==model){
+      status.textContent='Downloading model (one time)…';
+      whisperPipe = await pipeline('automatic-speech-recognition', model, {
+        progress_callback: p=>{
+          if(p && p.status==='progress' && p.total){
+            const pct=Math.round((p.loaded/p.total)*100);
+            barI.style.width=pct+'%';
+            status.textContent='Downloading '+(p.file||'model')+' · '+pct+'%';
+          }
+        }
+      });
+      whisperPipeName=model;
+    }
+    barI.style.width='100%';
+    status.textContent='Decoding audio…';
+    const audio = await blobToFloat32_16k(recBlob);
+    status.textContent='Transcribing locally — no upload. This can take a little while…';
+    const t0=performance.now();
+    const out = await whisperPipe(audio, { chunk_length_s:30, stride_length_s:5, return_timestamps:true });
+    const secs=Math.round((performance.now()-t0)/1000);
+    renderWhisper(out);
+    status.textContent='Done in '+secs+'s. Click any line to jump the player there.';
+    bar.style.display='none';
+  }catch(e){
+    console.error(e);
+    status.textContent='Transcription failed: '+(e && e.message ? e.message : e);
+    bar.style.display='none';
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+function renderWhisper(out){
+  const box=$('#whisperOut'); box.classList.remove('hidden'); box.innerHTML='';
+  const chunks=(out.chunks && out.chunks.length)?out.chunks:[{timestamp:[0,null],text:out.text||''}];
+  chunks.forEach(c=>{
+    const start=(c.timestamp && c.timestamp[0]!=null)?c.timestamp[0]:0;
+    const span=document.createElement('span');
+    span.className='seg';
+    span.innerHTML='<span class="ts">'+fmt(start)+'</span>'+(c.text||'').trim()+' ';
+    span.onclick=()=>{
+      if(playMediaEl){ try{ playMediaEl.currentTime=start; playMediaEl.play&&playMediaEl.play(); }catch(_){ } }
+      renderCharts(start);
+    };
+    box.appendChild(span);
+  });
+  const text=(out.text||'').trim();
+  const words=text?text.split(/\s+/).filter(Boolean).length:0;
+  if(words){
+    $('#rWords').textContent=words;
+    const mins=recElapsed/60;
+    $('#rWpm').innerHTML=(mins>0?Math.round(words/mins):'—')+' <small>wpm</small>';
+    const tb=new Blob([text],{type:'text/plain'});
+    if(whisperURL) URL.revokeObjectURL(whisperURL);
+    whisperURL=URL.createObjectURL(tb);
+    const a=$('#dlWhisper'); a.href=whisperURL; a.download='eloquence-transcript-accurate.txt'; a.classList.remove('hidden');
+  }
+}
+$('#whisperBtn').onclick=transcribeWithWhisper;
 
 $('#startRec').onclick=startRecording;
 $('#again').onclick=()=>{ location.reload(); };

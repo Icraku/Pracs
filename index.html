@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>On Air — Practice Studio</title>
+<title>On Air — Eloquence Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -190,7 +190,10 @@
   .bar{height:8px;border-radius:6px;background:var(--panel-2);overflow:hidden;margin-top:10px}
   .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--signal),var(--gold),var(--onair));transition:width .12s linear}
   canvas.scope{width:100%;height:90px;display:block;background:var(--bg-2);border:1px solid var(--line);border-radius:12px;margin-top:14px}
-  video#preview{width:100%;max-height:260px;background:#000;border-radius:12px;margin-top:14px;display:none;border:1px solid var(--line)}
+  video#preview{width:100%;max-height:300px;background:#000;border-radius:12px;margin-top:14px;display:none;border:1px solid var(--line);transform:scaleX(-1)}
+  video#playback{width:100%;max-height:360px;background:#000;border-radius:12px;border:1px solid var(--line);display:none}
+  audio#playback-audio{width:100%;margin-top:4px;display:none}
+  .playhead-help{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-top:8px}
   .live-cap{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:14px;min-height:70px;font-size:15px;color:var(--ink)}
   .live-cap .interim{color:var(--muted)}
 
@@ -355,6 +358,14 @@
       <div class="stat"><div class="k">Pitch range</div><div class="v" id="rPitchRange">— <small>Hz</small></div></div>
     </div>
 
+    <div class="chart-wrap" id="playbackWrap">
+      <h3>Play it back</h3>
+      <p>Press play — a marker sweeps across all three charts so you can hear exactly where each pause, peak and pitch change happened.</p>
+      <video id="playback" controls playsinline></video>
+      <audio id="playback-audio" controls></audio>
+      <p class="playhead-help" id="playheadHelp"></p>
+    </div>
+
     <div class="chart-wrap">
       <h3>Pitch over time</h3>
       <p>Higher line = higher pitch. Flat lines can read as monotone; varied lines read as expressive.</p>
@@ -399,7 +410,7 @@
       <li><b>Definitions</b> — shown from a built‑in glossary, so they work offline / on GitHub Pages with no API key.</li>
       <li><b>Prompt ideas</b> generated from rule‑based templates around your word + field.</li>
       <li><b>5‑minute writing timer</b> with a last‑minute red blink and a synthesized per‑second tick cue.</li>
-      <li><b>Recording</b> of microphone, screen, or both, at 5 / 10 / 20 / 30 minutes, with automatic stop.</li>
+      <li><b>Recording</b> of microphone, webcam, or both, at 5 / 10 / 20 / 30 minutes, with automatic stop and a mirrored self‑view for facial‑cue practice.</li>
       <li><b>Live transcript</b> via the browser's built‑in speech recognition (the same free tech behind voice typing).</li>
       <li><b>Pitch, volume and pace tracking</b> charted against time, plus a downloadable recording + transcript.</li>
     </ul>
@@ -408,9 +419,9 @@
     <ul>
       <li><b>True AI‑generated ideas/definitions</b> need an LLM API key. A key can't be safely embedded in a public GitHub Pages site (anyone could read it), so ideas here are template‑based. To get real AI generation you'd add a tiny backend or serverless function — that's no longer purely static/free.</li>
       <li><b>The actual Family Feud sound</b> is copyrighted, so the countdown uses an original synthesized tick in the same spirit.</li>
-      <li><b>Speech‑to‑text is browser‑dependent.</b> It works best in <b>desktop Chrome/Edge</b>. Firefox/Safari support is poor or absent. Long sessions auto‑restart the recognizer, but a few words can drop on the seams.</li>
-      <li><b>Speech recognition listens to your microphone only</b> — it can't transcribe arbitrary screen/system audio. "Screen only" recordings won't produce a transcript or pitch chart unless your mic is also on.</li>
-      <li><b>Screen recording</b> uses <code>getDisplayMedia</code>, which <b>desktop‑only</b> browsers support; most mobile browsers don't.</li>
+      <li><b>Speech‑to‑text is browser‑dependent and not perfect.</b> It works best in <b>desktop Chrome/Edge</b>; Firefox/Safari support is poor or absent. The recognizer is now kept alive with an auto‑restart and a watchdog so it captures far more, but the browser's free speech API still can't guarantee every word — for a near‑complete transcript you'd run an on‑device model (e.g. Whisper in WebAssembly) over the saved audio afterward.</li>
+      <li><b>Speech recognition listens to your microphone only</b> — so "Webcam only" (no mic) records video but produces no transcript or pitch chart.</li>
+      <li><b>Webcam capture</b> needs a camera and HTTPS; the recorded file is normal (un‑mirrored), while your live self‑view is mirrored like a mirror or video call.</li>
       <li><b>"Tone"</b> is measured objectively as pitch + loudness + pacing. Emotional/sentiment tone would need an ML model and isn't included.</li>
       <li><b>Files stay on your device.</b> There's no cloud save — you download the recording and transcript yourself.</li>
     </ul>
@@ -419,7 +430,7 @@
     <ul>
       <li>Put this file in a repo as <code>index.html</code>.</li>
       <li>Repo → Settings → Pages → Source: <code>main</code> branch, root.</li>
-      <li>Open the <code>https://&lt;you&gt;.github.io/&lt;repo&gt;/</code> URL <b>over HTTPS</b> — microphone, camera and screen capture only work on HTTPS (GitHub Pages is HTTPS by default).</li>
+      <li>Open the <code>https://&lt;you&gt;.github.io/&lt;repo&gt;/</code> URL <b>over HTTPS</b> — microphone and camera only work on HTTPS (GitHub Pages is HTTPS by default).</li>
     </ul>
     <p class="browser-note" id="supportReport">Checking your browser…</p>
   </div>
@@ -436,8 +447,8 @@
 
     <div class="opt-grid" id="srcOpts">
       <div class="opt sel" data-src="voice"><span class="ic">🎙️</span>Voice only</div>
-      <div class="opt" data-src="screen"><span class="ic">🖥️</span>Screen only</div>
-      <div class="opt" data-src="both"><span class="ic">🎬</span>Voice + Screen</div>
+      <div class="opt" data-src="webcam"><span class="ic">📷</span>Webcam only</div>
+      <div class="opt" data-src="both"><span class="ic">🎬</span>Voice + Webcam</div>
     </div>
 
     <label class="field-label">Length</label>
@@ -448,7 +459,7 @@
       <div class="dur" data-min="30">30 min</div>
     </div>
 
-    <div class="warnbox" id="modalWarn">Tip: use desktop Chrome or Edge for live transcript + pitch tracking. Screen capture isn't available on most phones.</div>
+    <div class="warnbox" id="modalWarn">Use desktop Chrome or Edge for the most complete live transcript + pitch tracking. You'll be asked to allow camera and/or microphone access. Your self‑view is mirrored while recording.</div>
 
     <div class="modal-actions">
       <button class="btn btn-primary" id="startRec">● Start recording</button>
@@ -778,11 +789,13 @@ $$('#durOpts .dur').forEach(d=>d.onclick=()=>{$$('#durOpts .dur').forEach(x=>x.c
 /* ============================================================
    RECORDING ENGINE
    ============================================================ */
-let mediaRecorder, recChunks=[], recStream=null, screenStream=null, micStream=null;
+let mediaRecorder, recChunks=[], recStream=null, camStream=null;
 let acx=null, analyser=null, micSourceNode=null, analyseRAF=null, recInt=null;
 let recElapsed=0, recTotal=0;
 let series={t:[],pitch:[],vol:[],words:[]};
-let recognition=null, finalText="", interimText="", recStartTime=0, mediaURL=null, transcriptURL=null;
+let recognition=null, recognizing=false, srWatchdog=null;
+let finalText="", interimText="", recStartTime=0, mediaURL=null, transcriptURL=null;
+let hasVideoRec=false, chartData=null, playRAF=null, playMediaEl=null;
 const NOTE=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 function hzToNote(f){if(f<=0)return"—";const n=Math.round(12*Math.log2(f/440))+57;return NOTE[((n%12)+12)%12]+(Math.floor(n/12));}
 
@@ -814,46 +827,37 @@ async function startRecording(){
   recChunks=[]; series={t:[],pitch:[],vol:[],words:[]}; finalText=""; interimText="";
   recElapsed=0; recTotal=state.durMin*60;
   const wantVoice = state.src==='voice'||state.src==='both';
-  const wantScreen= state.src==='screen'||state.src==='both';
+  const wantCam   = state.src==='webcam'||state.src==='both';
 
   try{
-    if(wantScreen){
-      screenStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});
-    }
-    if(wantVoice){
-      micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
-    }
+    camStream=await navigator.mediaDevices.getUserMedia({
+      video: wantCam ? {width:{ideal:1280},height:{ideal:720},facingMode:'user'} : false,
+      audio: wantVoice ? {echoCancellation:true,noiseSuppression:true,autoGainControl:true} : false
+    });
   }catch(err){
-    alert("Couldn't start capture: "+err.message+"\n\nMake sure you granted permission and are on HTTPS (or localhost).");
+    alert("Couldn't start capture: "+err.message+"\n\nMake sure you allowed camera/microphone access and are on HTTPS (or localhost).");
     cleanupStreams(); return;
   }
 
-  // Build the recorded stream + analysis graph
+  // Analysis graph (mic only)
   acx=new (window.AudioContext||window.webkitAudioContext)();
-  const mixDest=acx.createMediaStreamDestination();
-  if(micStream){
-    micSourceNode=acx.createMediaStreamSource(micStream);
+  if(wantVoice && camStream.getAudioTracks().length){
+    micSourceNode=acx.createMediaStreamSource(camStream);
     analyser=acx.createAnalyser();analyser.fftSize=2048;
-    micSourceNode.connect(analyser);          // analyser tap (mic only, not to output -> no feedback)
-    micSourceNode.connect(mixDest);            // mic into recording mix
+    micSourceNode.connect(analyser); // tap only, no output -> no feedback
   }
-  if(screenStream && screenStream.getAudioTracks().length){
-    const ss=acx.createMediaStreamSource(screenStream);
-    ss.connect(mixDest);                       // system audio into recording mix
-  }
-  const tracks=[];
-  if(screenStream) screenStream.getVideoTracks().forEach(t=>tracks.push(t));
-  if(mixDest.stream.getAudioTracks().length) tracks.push(mixDest.stream.getAudioTracks()[0]);
-  recStream=new MediaStream(tracks);
 
-  // preview for screen
+  // Single stream is recorded directly
+  recStream=camStream;
+  hasVideoRec=recStream.getVideoTracks().length>0;
+
+  // mirrored live self-view
   const prev=$('#preview');
-  if(screenStream){ prev.srcObject=screenStream; prev.style.display='block'; prev.play().catch(()=>{}); }
+  if(wantCam){ prev.srcObject=camStream; prev.style.display='block'; prev.play().catch(()=>{}); }
   else { prev.style.display='none'; }
 
   // MediaRecorder
-  const hasVideo=recStream.getVideoTracks().length>0;
-  let mime = hasVideo
+  let mime = hasVideoRec
       ? (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')?'video/webm;codecs=vp9,opus':'video/webm')
       : (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm');
   try{ mediaRecorder=new MediaRecorder(recStream,{mimeType:mime}); }
@@ -863,21 +867,16 @@ async function startRecording(){
   mediaRecorder.start(1000);
   recStartTime=performance.now();
 
-  // Speech recognition (mic only)
   if(wantVoice) startRecognition();
-
-  // if user stops sharing screen, end the session
-  if(screenStream) screenStream.getVideoTracks()[0].addEventListener('ended',()=>stopRecording());
 
   // UI
   $('#stage-write').classList.add('hidden');
   $('#stage-rec').classList.remove('hidden');
-  $('#recTitle').textContent = state.src==='screen'?'Recording screen…':state.src==='both'?'Recording voice + screen…':'Recording voice…';
+  $('#recTitle').textContent = state.src==='webcam'?'Recording webcam…':state.src==='both'?'Recording voice + webcam…':'Recording voice…';
   $('#autoStopHint').textContent='Auto‑stops in '+fmt(recTotal);
-  $('#liveCap').innerHTML = wantVoice ? '<span class="interim">Listening…</span>' : '<span class="interim">No microphone selected — transcript and pitch are off for screen‑only mode.</span>';
+  $('#liveCap').innerHTML = wantVoice ? '<span class="interim">Listening…</span>' : '<span class="interim">No microphone selected — transcript & pitch are off for webcam‑only mode.</span>';
   $('#stage-rec').scrollIntoView({behavior:'smooth'});
 
-  // analysis + clock loops
   if(analyser) loopAnalyse();
   recInt=setInterval(()=>{
     recElapsed++;
@@ -893,18 +892,15 @@ function loopAnalyse(){
   let lastSample=0;
   (function tick(){
     analyser.getFloatTimeDomainData(buf);
-    // volume rms
     let rms=0;for(let i=0;i<buf.length;i++)rms+=buf[i]*buf[i];rms=Math.sqrt(rms/buf.length);
     const volPct=Math.min(100,Math.round(rms*180));
     $('#volVal').textContent=rms.toFixed(3);$('#volPct').textContent=volPct+'%';$('#volBar').style.width=volPct+'%';
-    // pitch
     const f=autoCorrelate(buf,acx.sampleRate);
     if(f>0){
       $('#pitchVal').textContent=Math.round(f);
       $('#pitchNote').textContent=hzToNote(f);
       $('#pitchBar').style.width=Math.min(100,((f-70)/(330-70))*100)+'%';
     }
-    // oscilloscope
     sx.clearRect(0,0,scope.width,scope.height);
     sx.lineWidth=2;sx.strokeStyle='#3ad6c5';sx.beginPath();
     for(let i=0;i<buf.length;i+=4){
@@ -912,7 +908,6 @@ function loopAnalyse(){
       i===0?sx.moveTo(x,y):sx.lineTo(x,y);
     }
     sx.stroke();
-    // sample ~5x/sec into series
     const now=performance.now();
     if(now-lastSample>=200){
       lastSample=now;
@@ -927,23 +922,55 @@ function loopAnalyse(){
   })();
 }
 
+/* ---- Robust speech recognition ----
+   Web Speech API stops on silence / ~60s and silently dies; we keep it alive
+   with an immediate restart on end plus a watchdog that revives it. This
+   captures far more, but the API still can't guarantee 100% of words. */
 function startRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ $('#liveCap').innerHTML='<span class="interim">This browser has no built‑in speech recognition. Audio is still recorded — use Chrome/Edge for a live transcript.</span>'; return; }
-  recognition=new SR();
-  recognition.continuous=true;recognition.interimResults=true;recognition.lang='en-US';
-  recognition.onresult=e=>{
-    interimText="";
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const txt=e.results[i][0].transcript;
-      if(e.results[i].isFinal) finalText+=txt+" "; else interimText+=txt;
-    }
-    $('#liveCap').innerHTML = finalText + '<span class="interim">'+interimText+'</span>';
-    $('#liveCap').scrollTop=$('#liveCap').scrollHeight;
+  if(!SR){
+    $('#liveCap').innerHTML='<span class="interim">This browser has no built‑in speech‑to‑text. The audio is still recorded — open it in desktop Chrome or Edge for a live transcript.</span>';
+    return;
+  }
+  const make=()=>{
+    const r=new SR();
+    r.continuous=true; r.interimResults=true; r.lang='en-US'; r.maxAlternatives=1;
+    r.onstart=()=>{ recognizing=true; };
+    r.onresult=e=>{
+      interimText="";
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const txt=e.results[i][0].transcript;
+        if(e.results[i].isFinal) finalText+=txt.trim()+" "; else interimText+=txt;
+      }
+      $('#liveCap').innerHTML = finalText + '<span class="interim">'+interimText+'</span>';
+      $('#liveCap').scrollTop=$('#liveCap').scrollHeight;
+    };
+    r.onerror=ev=>{
+      if(ev.error==='not-allowed'||ev.error==='service-not-allowed'){
+        $('#liveCap').innerHTML='<span class="interim">Microphone access for transcription was blocked. Audio is still recorded.</span>';
+        recognizing=false;
+        try{r.stop();}catch(_){}
+      }
+      // 'no-speech','aborted','network','audio-capture' -> let onend restart
+    };
+    r.onend=()=>{
+      recognizing=false;
+      // restart instantly while still recording (this is what recovers dropped words)
+      if(mediaRecorder && mediaRecorder.state==='recording'){
+        try{ recognition.start(); }catch(_){ /* will be revived by watchdog */ }
+      }
+    };
+    return r;
   };
-  recognition.onerror=ev=>{ if(ev.error==='not-allowed'){ $('#liveCap').innerHTML='<span class="interim">Microphone blocked for transcription.</span>'; } };
-  recognition.onend=()=>{ if(mediaRecorder && mediaRecorder.state==='recording'){ try{recognition.start();}catch(e){} } };
-  try{recognition.start();}catch(e){}
+  recognition=make();
+  try{ recognition.start(); }catch(_){}
+  // watchdog: if recognition died and we're still recording, revive it
+  clearInterval(srWatchdog);
+  srWatchdog=setInterval(()=>{
+    if(mediaRecorder && mediaRecorder.state==='recording' && !recognizing){
+      try{ recognition.start(); }catch(_){}
+    }
+  },2500);
 }
 
 function stopRecording(){
@@ -952,28 +979,42 @@ function stopRecording(){
 $('#stopRec').onclick=stopRecording;
 
 function cleanupStreams(){
-  [recStream,screenStream,micStream].forEach(s=>{ if(s) s.getTracks().forEach(t=>t.stop()); });
+  [recStream,camStream].forEach(s=>{ if(s) s.getTracks().forEach(t=>t.stop()); });
   if(analyseRAF) cancelAnimationFrame(analyseRAF);
   if(recInt) clearInterval(recInt);
+  if(srWatchdog) clearInterval(srWatchdog);
   if(recognition){ try{recognition.onend=null;recognition.stop();}catch(e){} }
+  recognizing=false;
   if(acx){ try{acx.close();}catch(e){} }
-  screenStream=micStream=recStream=null; analyser=null;
+  camStream=recStream=null; analyser=null;
+  const prev=$('#preview'); prev.srcObject=null; prev.style.display='none';
+}
+
+// MediaRecorder webm files often report Infinity duration -> scrubbing breaks.
+// Nudge the element so it learns the real duration.
+function fixWebmDuration(el){
+  el.addEventListener('loadedmetadata',()=>{
+    if(el.duration===Infinity || isNaN(el.duration)){
+      el.currentTime=1e101;
+      const onUpdate=()=>{ el.currentTime=0; el.removeEventListener('timeupdate',onUpdate); };
+      el.addEventListener('timeupdate',onUpdate);
+    }
+  },{once:true});
 }
 
 function finishRecording(){
   const blob=new Blob(recChunks,{type:recChunks[0]?recChunks[0].type:'audio/webm'});
   if(mediaURL) URL.revokeObjectURL(mediaURL);
   mediaURL=URL.createObjectURL(blob);
-  const hasVideo=recStream && recStream.getVideoTracks().length>0;
   const dl=$('#dlMedia');
-  dl.href=mediaURL; dl.download='eloquence-session.'+(hasVideo?'webm':'webm');
-  dl.textContent='⬇ Download recording ('+(hasVideo?'video':'audio')+')'; dl.classList.remove('hidden');
+  dl.href=mediaURL; dl.download='eloquence-session.webm';
+  dl.textContent='⬇ Download recording ('+(hasVideoRec?'video':'audio')+')'; dl.classList.remove('hidden');
   cleanupStreams();
   buildResults();
 }
 
 /* ============================================================
-   RESULTS
+   RESULTS + PLAYBACK
    ============================================================ */
 function buildResults(){
   $('#stage-rec').classList.add('hidden');
@@ -987,28 +1028,33 @@ function buildResults(){
   const mins=recElapsed/60;
   const wpm=mins>0?Math.round(totalWords/mins):0;
 
-  $('#resultSub').textContent='Word "'+state.word+'" · '+state.field+' · '+(state.src)+' · '+fmt(recElapsed);
+  $('#resultSub').textContent='Word "'+state.word+'" · '+state.field+' · '+state.src+' · '+fmt(recElapsed);
   $('#rDur').textContent=fmt(recElapsed);
   $('#rWords').textContent=totalWords;
   $('#rWpm').innerHTML=(wpm||'—')+' <small>wpm</small>';
   $('#rPitch').innerHTML=(avgPitch||'—')+' <small>Hz</small>';
   $('#rPitchRange').innerHTML=(pitches.length?(minP+'–'+maxP):'—')+' <small>Hz</small>';
 
-  // charts
-  const tArr=series.t;
-  drawChart($('#chartPitch'), tArr, series.pitch, {color:'#3ad6c5', unit:'Hz', gapNull:true});
-  drawChart($('#chartVol'), tArr, series.vol.map(v=>v*100), {color:'#f6c453', unit:''});
-  // wpm rolling (15s window) from cumulative word samples
+  // precompute chart series (reused every playback frame)
   const W=15, wpmSeries=series.words.map((w,i)=>{
-    const tNow=tArr[i]; let j=i;
-    while(j>0 && tArr[i]-tArr[j]<W) j--;
-    const dw=w-series.words[j], dt=Math.max(1,tArr[i]-tArr[j]);
+    let j=i; while(j>0 && series.t[i]-series.t[j]<W) j--;
+    const dw=w-series.words[j], dt=Math.max(1,series.t[i]-series.t[j]);
     return (dw/dt)*60;
   });
-  drawChart($('#chartWpm'), tArr, wpmSeries, {color:'#ff5a3c', unit:'wpm'});
+  chartData={
+    t: series.t,
+    pitch: series.pitch,
+    vol: series.vol.map(v=>v*100),
+    wpm: wpmSeries,
+    xMax: series.t[series.t.length-1] || recElapsed || 1
+  };
+  renderCharts(null);
+
+  // ---- playback element + tracker ----
+  setupPlayback();
 
   // transcript
-  $('#finalTranscript').textContent = finalText.trim() || "No transcript was captured. (Screen‑only mode, an unsupported browser, or the microphone was off.)";
+  $('#finalTranscript').textContent = finalText.trim() || "No transcript was captured. (Webcam‑only mode, an unsupported browser, or the microphone was off.)";
   if(finalText.trim()){
     const tb=new Blob([finalText.trim()],{type:'text/plain'});
     if(transcriptURL) URL.revokeObjectURL(transcriptURL);
@@ -1018,39 +1064,62 @@ function buildResults(){
   $('#stage-results').scrollIntoView({behavior:'smooth'});
 }
 
+function setupPlayback(){
+  const vid=$('#playback'), aud=$('#playback-audio');
+  vid.style.display='none'; aud.style.display='none';
+  vid.pause&&vid.pause(); aud.pause&&aud.pause();
+  playMediaEl = hasVideoRec ? vid : aud;
+  playMediaEl.src = mediaURL;
+  playMediaEl.style.display = hasVideoRec ? 'block' : 'block';
+  fixWebmDuration(playMediaEl);
+  $('#playheadHelp').textContent = 'The marker on the charts below follows playback. Scrub the player to jump anywhere.';
+
+  const tick=()=>{
+    renderCharts(playMediaEl.currentTime);
+    if(!playMediaEl.paused && !playMediaEl.ended){ playRAF=requestAnimationFrame(tick); }
+  };
+  playMediaEl.onplay=()=>{ cancelAnimationFrame(playRAF); tick(); };
+  playMediaEl.onpause=()=>{ cancelAnimationFrame(playRAF); renderCharts(playMediaEl.currentTime); };
+  playMediaEl.onended=()=>{ cancelAnimationFrame(playRAF); renderCharts(playMediaEl.currentTime); };
+  playMediaEl.onseeking=()=>{ renderCharts(playMediaEl.currentTime); };
+  playMediaEl.ontimeupdate=()=>{ if(playMediaEl.paused) renderCharts(playMediaEl.currentTime); };
+}
+
+function renderCharts(playheadT){
+  if(!chartData) return;
+  drawChart($('#chartPitch'), chartData.t, chartData.pitch, {color:'#3ad6c5', unit:'Hz', gapNull:true, xMax:chartData.xMax, playhead:playheadT});
+  drawChart($('#chartVol'),   chartData.t, chartData.vol,   {color:'#f6c453', unit:'%',  xMax:chartData.xMax, playhead:playheadT});
+  drawChart($('#chartWpm'),   chartData.t, chartData.wpm,   {color:'#ff5a3c', unit:'wpm',xMax:chartData.xMax, playhead:playheadT});
+}
+
 function drawChart(canvas,xs,ys,opts){
   const ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
   const padL=44,padR=12,padT=14,padB=24;
   ctx.clearRect(0,0,W,H);
-  // gather valid
   const valid=[];
   for(let i=0;i<xs.length;i++){ if(ys[i]!=null && !isNaN(ys[i])) valid.push([xs[i],ys[i]]); }
-  // axes bg
   ctx.fillStyle='#11151b';ctx.fillRect(padL,padT,W-padL-padR,H-padT-padB);
   if(valid.length<2){
     ctx.fillStyle='#646b77';ctx.font='12px "Space Mono", monospace';
     ctx.fillText('Not enough data captured.',padL+10,H/2);
     return;
   }
-  const xMax=xs[xs.length-1]||1;
+  const xMax=opts.xMax || xs[xs.length-1] || 1;
   let yMin=Math.min(...valid.map(v=>v[1])), yMax=Math.max(...valid.map(v=>v[1]));
   if(yMin===yMax){yMin-=1;yMax+=1;}
   const pad=(yMax-yMin)*0.1; yMin-=pad; yMax+=pad;
-  const X=t=>padL+(t/xMax)*(W-padL-padR);
+  const X=t=>padL+(Math.max(0,Math.min(t,xMax))/xMax)*(W-padL-padR);
   const Y=v=>padT+(1-(v-yMin)/(yMax-yMin))*(H-padT-padB);
-  // gridlines + y labels
   ctx.strokeStyle='#222a34';ctx.fillStyle='#646b77';ctx.font='10px "Space Mono", monospace';ctx.lineWidth=1;
   for(let g=0;g<=3;g++){
     const v=yMin+(yMax-yMin)*g/3, y=Y(v);
     ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
     ctx.fillText(Math.round(v),6,y+3);
   }
-  // x labels
   for(let g=0;g<=4;g++){
     const t=xMax*g/4, x=X(t);
     ctx.fillText(fmt(t),x-12,H-8);
   }
-  // line (respect null gaps if requested)
   ctx.strokeStyle=opts.color;ctx.lineWidth=2;ctx.beginPath();
   let started=false;
   for(let i=0;i<xs.length;i++){
@@ -1060,8 +1129,14 @@ function drawChart(canvas,xs,ys,opts){
     if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
   }
   ctx.stroke();
-  // unit
   if(opts.unit){ctx.fillStyle='#646b77';ctx.font='10px "Space Mono", monospace';ctx.fillText(opts.unit,padL+2,padT+10);}
+  // playhead
+  if(opts.playhead!=null && !isNaN(opts.playhead)){
+    const px=X(opts.playhead);
+    ctx.strokeStyle='#ece9e1';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(px,padT);ctx.lineTo(px,H-padB);ctx.stroke();
+    ctx.fillStyle='#ff5a3c';ctx.beginPath();ctx.arc(px,padT,4,0,2*Math.PI);ctx.fill();
+  }
 }
 
 $('#startRec').onclick=startRecording;
@@ -1073,7 +1148,7 @@ $('#again').onclick=()=>{ location.reload(); };
 (function(){
   const hasSR=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
   const hasMic=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
-  const hasScreen=!!(navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia);
+  const hasCam=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
   const hasRec=typeof MediaRecorder!=='undefined';
   const secure=window.isSecureContext;
   const line=(ok,t)=>`${ok?'✓':'✗'} ${t}`;
@@ -1081,7 +1156,7 @@ $('#again').onclick=()=>{ location.reload(); };
     'This browser: '+
     [line(secure,'secure context (HTTPS)'),
      line(hasMic,'microphone capture'),
-     line(hasScreen,'screen capture'),
+     line(hasCam,'webcam capture'),
      line(hasRec,'media recording'),
      line(hasSR,'live transcript (speech‑to‑text)')].join(' &nbsp; ');
 })();
